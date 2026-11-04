@@ -25,6 +25,8 @@ Jmin=min(min(J));    Jmax=max(max(J));      % skrajne wartoœci intensywnoœci w J
     subplot(2,3,5), imshow(maska); xlabel('Maska')
     set(gcf,'Position',scrsz);
     pause(1);
+    Otsu = zeros(w,k);
+    Iter = zeros(w,k);
 % Pêtla g³ówna
     for i=1:1000
         Jw(J>told)=1;
@@ -39,9 +41,17 @@ Jmin=min(min(J));    Jmax=max(max(J));      % skrajne wartoœci intensywnoœci w J
         subplot(2,3,3),   imhist(J);    hold on;   bar((Jmax-Jmin)*tOtsu,w*k,'r');  bar(tnew,w*k,'r');
         subplot(2,3,5), imshow(maska); xlabel('Maska')
         set(gcf,'Position',scrsz);
+        Iter = (J > tnew);
+        Otsu = imbinarize(J,tOtsu);
 % Warunek koñca
         if (tnew==told)     break;  end
         told=tnew;
         pause(1);
     end
     disp(['Prog wyznaczony metoda iteracyjna: ',int2str(tnew)]);
+% Wspó³czynnik Dice
+    maska = imbinarize(maska);
+    simmilarityIT = dice(Iter, maska);
+    simmilarityOtsu = dice(Otsu, maska);
+    disp("Wspolczynnik dice dla iteracyjnej " + simmilarityIT);
+    disp("Wspolczynnik dice dla Otsu " + simmilarityOtsu);

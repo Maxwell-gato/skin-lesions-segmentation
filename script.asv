@@ -2,17 +2,15 @@
 %% Inicjalizacja
 clc;    clear;  close all;      scrsz=get(0,'ScreenSize');  scrsz=round([1 1 1 0.88].*scrsz+[0 0.05*scrsz(4) 0 0]);
 
-%% Wczytanie danych obrazowych i pomocniczyc
-J = imread("images\8.jpg");
-maska = imread("masks\m8.png");
+%% Wczytanie danych obrazowych i pomocniczych
+numerObrazu = 1;
+J = imread("images\"+numerObrazu+".jpg");
+maska = imread("masks\m"+numerObrazu+".png");
 J = rgb2gray(J);
 [w,k]=size(J);                              % w x k - rozmiary obrazu J
 Jmin=min(min(J));    Jmax=max(max(J));      % skrajne wartości intensywności w J
 
-
-
-%%  Zadanie 3. Progowanie globalne - metoda iteracyjna
-if (zadanie==3)
+%%  progowanie globalne otsu i iteracyjne
 % Próg z metody Otsu dla porównania
     tOtsu=graythresh(J);
     disp(['Prog wyznaczony metoda Otsu:       ',int2str((Jmax-Jmin)*tOtsu)]);
@@ -27,6 +25,8 @@ if (zadanie==3)
     subplot(2,3,5), imshow(maska); xlabel('Maska')
     set(gcf,'Position',scrsz);
     pause(1);
+    Otsu = zeros(w,k);
+    Iter = zeros(w,k);
 % Pętla główna
     for i=1:1000
         Jw(J>told)=1;
@@ -41,103 +41,17 @@ if (zadanie==3)
         subplot(2,3,3),   imhist(J);    hold on;   bar((Jmax-Jmin)*tOtsu,w*k,'r');  bar(tnew,w*k,'r');
         subplot(2,3,5), imshow(maska); xlabel('Maska')
         set(gcf,'Position',scrsz);
+        Iter = (J > tnew);
+        Otsu = imbinarize(J,tOtsu);
 % Warunek końca
         if (tnew==told)     break;  end
         told=tnew;
         pause(1);
     end
     disp(['Prog wyznaczony metoda iteracyjna: ',int2str(tnew)]);
-end
-
-%%  Zadanie 4. Progowanie lokalne met. Bernsena
-if (zadanie==4)
-
-    r=80;           % szerokość okna
-    l=90;           % minimalny kontrast
-    wariant=1;      % wariant obrazu
-
-    uzupelnianie=true;              % co zrobić z fragmentami po prawej i z dołu?
-    if (wariant==2)
-        J=imread('02_EKG.bmp');     % źródło (negatyw): http://www.medcitynews.com/index.php/2009/08/most-americans-skeptical-about-health-care-reform-thomson-reuters-survay-says-medcity-morning-read-aug-25-2009/normal-ekg/
-        [w,k]=size(J);  Jmin=min(min(J));    Jmax=max(max(J));
-    end
-    Jw=zeros(w,k);  t=zeros(w,k);   C=zeros(w,k);
-    dr=0.5*(r-1);   x0=dr+1;    y0=dr+1;
-    lw=ceil(w/r);  rw=mod(w,r);  
-    lk=ceil(k/r);  rk=mod(k,r);
-    tOtsu=(Jmax-Jmin)*graythresh(J);
-    for i=1:lw
-        y=y0+(i-1)*r;
-        upper = y-dr;
-        if (i < lw) || (~rw)    lower = y+dr;   % dolny indeks kwadratu
-        else
-            if (uzupelnianie)   lower = w;
-            else                break;
-            end
-        end    
-        for j=1:lk
-            x=x0+(j-1)*r;
-            left = x-dr;
-            if (j < lk) || (~rk)    right = x+dr;   % dolny indeks kwadratu
-            else
-                if (uzupelnianie)   right = k;
-                else                break;
-                end
-            end    
-            Jxy=J(upper:lower,left:right);
-            M=max(max(Jxy));
-            m=min(min(Jxy));
-            txy=0.5*M+0.5*m;    Cxy=M-m;
-            t(upper:lower,left:right)=txy;     C(upper:lower,left:right)=Cxy;
-            if (wariant==1)
-                if      (Cxy>l)                 Jwxy=zeros(size(Jxy));  Jwxy(Jxy>txy)=1;
-                elseif  (txy>tOtsu)             Jwxy=ones(size(Jxy));
-                else                            Jwxy=zeros(size(Jxy));
-                end
-            else
-                if      (Cxy>l)                 Jwxy=zeros(size(Jxy));  Jwxy(Jxy<txy)=1;
-                elseif  (txy<tOtsu)             Jwxy=ones(size(Jxy));
-                else                            Jwxy=zeros(size(Jxy));
-                end
-            end
-            Jw(upper:lower,left:right)=Jwxy;
-        end
-    end
-% Wyświetlanie
-    subplot(2,3,1), imshow(J);  xlabel('Obraz oryginalny');
-    subplot(2,3,3), imshow(t,[Jmin Jmax]);  xlabel('Obraz progów t(x,y)');
-    subplot(2,3,2), imshow(C,[Jmin Jmax]);  xlabel('Obraz kontrastów C(x,y)');
-    subplot(2,3,4), imshow(Jw);  xlabel('Obraz po progowaniu');  set(gcf,'Position',scrsz);
-    subplot(2,3,5), imshow(maska); xlabel('Maska')
-end
-
-%%  Zadanie 5. Progowanie adaptacyjne - metoda Bernsena
-
-if (zadanie==5)
-
-    r=150;           % szerokość okna
-    l=80;           % minimalny kontrast
-    wariant=1;      % wariant obrazu
-
-    if (wariant==2)
-        J=imread('02_EKG.bmp');     % źródło (negatyw): http://www.medcitynews.com/index.php/2009/08/most-americans-skeptical-about-health-care-reform-thomson-reuters-survay-says-medcity-morning-read-aug-25-2009/normal-ekg/
-        [w,k]=size(J);  Jmin=min(min(J));    Jmax=max(max(J));
-    end
-    Jw=zeros(w,k);  t=zeros(w,k);
-    MAX=ordfilt2(J,r*r,ones(r),'symmetric');    MIN=ordfilt2(J,1,ones(r),'symmetric');
-    t=0.5*MAX+0.5*MIN;  C=MAX-MIN;
-    tOtsu=(Jmax-Jmin)*graythresh(J);
-    if (wariant==1)
-        Jw(J>t)=1;
-        Jw(C<l & J<=tOtsu)=0;
-    else
-        Jw(J<t)=1;
-        Jw(C<l & J>=tOtsu)=0;
-    end
-% Wyświetlanie
-    subplot(2,3,1), imshow(J);  xlabel('Obraz oryginalny');
-    subplot(2,3,3), imshow(t,[Jmin Jmax]);  xlabel('Obraz progów t(x,y)');
-    subplot(2,3,2), imshow(C,[Jmin Jmax]);  xlabel('Obraz kontrastów C(x,y)');
-    subplot(2,3,4), imshow(Jw);  xlabel('Obraz po progowaniu');  set(gcf,'Position',scrsz);
-    subplot(2,3,5), imshow(maska); xlabel('Maska')
-end
+% Współczynnik Dice
+    maska = imbinarize(maska);
+    simmilarityIT = dice(Iter, maska);
+    simmilarityOtsu = dice(Otsu, maska);
+    disp("Wspolczynnik dice dla iteracyjnej " + simmilarityIT,2);
+    disp("Wspolczynnik dice dla Otsu " + simmilarityOtsu);
