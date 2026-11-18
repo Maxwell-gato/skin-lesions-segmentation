@@ -1,6 +1,6 @@
 clc;    clear;  close all;      scrsz=get(0,'ScreenSize');  scrsz=round([1 1 1 0.88].*scrsz+[0 0.05*scrsz(4) 0 0]);
 %%
-numerObrazu = 1;
+numerObrazu = 3;
 RGB = imread("images\"+numerObrazu+".jpg");
 mask = imread("masks\m"+numerObrazu+".png");
 GRAY = rgb2gray(RGB);                             
@@ -53,7 +53,7 @@ if(mode == 1) % PROGOWANIE
             subplot(2,3,4), imshow(Jw,[]);  xlabel('Metoda iteracyjna');
             subplot(2,3,2), imshow(im2bw(J,tOtsu));  xlabel('Metoda Otsu');
             subplot(2,3,3),   imhist(J);    hold on;   bar((Jmax-Jmin)*tOtsu,w*k,'r');  bar(tnew,w*k,'r');
-            subplot(2,3,5), imshow(maska); xlabel('Maska')
+            subplot(2,3,5), imshow(mask); xlabel('Maska')
             set(gcf,'Position',scrsz);
     % Warunek koñca
             if (tnew==told)     break;  end
@@ -71,7 +71,7 @@ if(mode == 2) %ROZROST REGIONU
     s = [round(seed_y), round(seed_x)]; %wspó³rzêdne s¹ odwrotnie ni¿ indeksowanie macierzy
 
     kryterium=2; %kryterium = ró¿nica intensywnoœci w stosunku do œredniej intensywnoœci obszaru
-    max_dJ=42;               % maksymalna ró¿nica intensywnoœci 
+    max_dJ=20;               % maksymalna ró¿nica intensywnoœci 
     sasiedztwo=8;           % typ s¹siedztwa
 
     Jsr2disp=[];                % wektor œrednich intensywnoœci
