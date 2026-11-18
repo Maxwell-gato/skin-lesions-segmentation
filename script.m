@@ -1,56 +1,112 @@
-
-%% Inicjalizacja
 clc;    clear;  close all;      scrsz=get(0,'ScreenSize');  scrsz=round([1 1 1 0.88].*scrsz+[0 0.05*scrsz(4) 0 0]);
+%%
+numerObrazu = 3;
+RGB = imread("images\"+numerObrazu+".jpg");
+mask = imread("masks\m"+numerObrazu+".png");
+GRAY = rgb2gray(RGB);                             
+J = GRAY; % obraz w zmiennej J bior膮 wszystkie funkcje ni偶ej
 
-%% Wczytanie danych obrazowych i pomocniczych
-numerObrazu = 1;
-J = imread("images\"+numerObrazu+".jpg");
-maska = imread("masks\m"+numerObrazu+".png");
-J = rgb2gray(J);
-[w,k]=size(J);                              % w x k - rozmiary obrazu J
-Jmin=min(min(J));    Jmax=max(max(J));      % skrajne warto渃i intensywno渃i w J
+%do mode 2
+[w, k] = size(J); 
+Jd = double(J);
+Jmax = max(max(J));
 
-%%  progowanie globalne otsu i iteracyjne
-% Pr骻 z metody Otsu dla por體nania
-    tOtsu=graythresh(J);
-    disp(['Prog wyznaczony metoda Otsu:       ',int2str((Jmax-Jmin)*tOtsu)]);
-% Pierwotna warto滄 progowa
-    told=round(0.5*Jmin+0.5*Jmax);
-    Jw=uint8(zeros(w,k));
-% Wy渨ietlanie t w zerowej iteracji
-    subplot(2,3,1), imshow(J);  xlabel('Obraz oryginalny');
-    subplot(2,3,4), imshow(Jw,[]);  xlabel('Metoda iteracyjna');
-    subplot(2,3,2), imshow(im2bw(J,tOtsu));  xlabel('Metoda Otsu');
-    subplot(2,3,3),   imhist(J);    hold on;   bar((Jmax-Jmin)*tOtsu,w*k,'r');  bar(told,w*k,'r');
-    subplot(2,3,5), imshow(maska); xlabel('Maska')
-    set(gcf,'Position',scrsz);
-    pause(1);
-    Otsu = zeros(w,k);
-    Iter = zeros(w,k);
-% P阾la g丑wna
-    for i=1:1000
-        Jw(J>told)=1;
-        tb =sum(sum(   Jw .*J))/nnz(  Jw);
-        tcz=sum(sum((1-Jw).*J))/nnz(1-Jw);
-        tnew=round(0.5*tcz+0.5*tb);
-        info=['Iteracja ',int2str(i),'    tstare = ',int2str(told),'    tnowe = ',int2str(tnew)];  disp(info);
-% Wy渨ietlanie
-        subplot(2,3,1), imshow(J);  xlabel('Obraz oryginalny');
-        subplot(2,3,4), imshow(Jw,[]);  xlabel('Metoda iteracyjna');
-        subplot(2,3,2), imshow(im2bw(J,tOtsu));  xlabel('Metoda Otsu');
-        subplot(2,3,3),   imhist(J);    hold on;   bar((Jmax-Jmin)*tOtsu,w*k,'r');  bar(tnew,w*k,'r');
-        subplot(2,3,5), imshow(maska); xlabel('Maska')
-        set(gcf,'Position',scrsz);
-        Iter = (J > tnew);
-        Otsu = imbinarize(J,tOtsu);
-% Warunek ko馽a
-        if (tnew==told)     break;  end
-        told=tnew;
-        pause(1);
+mode = 2;
+
+if(mode == 1) % PROGOWANIE
+    %% kana艂y rgb
+    R = RGB(:, :, 1);
+    G = RGB(:, :, 2);
+    B = RGB(:, :, 3);
+    subplot(2, 2, 1), imshow(RGB), title("obraz rgb")
+    subplot(2, 2, 2), imshow(R), title("kana艂 R")
+    subplot(2, 2, 3), imshow(G), title("kana艂 G")
+    subplot(2, 2, 4), imshow(B), title("kana艂 B")
+    %% hsv
+    figure();
+    [H, S, V] = rgb2hsv(RGB);
+    figure
+    subplot(2,2,1), imshow(RGB), title('Obraz rgb')
+    subplot(2,2,2), imshow(H), title('Odcie艅 (H)')
+    subplot(2,2,3), imshow(S), title('Nasycenie (S)')
+    subplot(2,2,4), imshow(V), title('Jasno艣膰 (V)')
+    
+    J = G;
+    Jmin=min(min(J));    Jmax=max(max(J));
+    [w,k]=size(J);
+    % Pr贸g z metody Otsu dla por贸wnania
+        tOtsu=graythresh(J);
+        disp(['Prog wyznaczony metoda Otsu:       ',int2str((Jmax-Jmin)*tOtsu)]);
+    % Pierwotna warto艣膰 progowa
+        told=round(0.5*Jmin+0.5*Jmax);
+        Jw=uint8(zeros(w,k));
+    % P臋tla g艂贸wna
+    figure();
+        for i=1:1000
+            Jw(J>told)=1;
+            tb =sum(sum(   Jw .*J))/nnz(  Jw);
+            tcz=sum(sum((1-Jw).*J))/nnz(1-Jw);
+            tnew=round(0.5*tcz+0.5*tb);
+            info=['Iteracja ',int2str(i),'    tstare = ',int2str(told),'    tnowe = ',int2str(tnew)];  disp(info);
+    % Wy艣wietlanie
+            subplot(2,3,1), imshow(J);  xlabel('Obraz oryginalny');
+            subplot(2,3,4), imshow(Jw,[]);  xlabel('Metoda iteracyjna');
+            subplot(2,3,2), imshow(im2bw(J,tOtsu));  xlabel('Metoda Otsu');
+            subplot(2,3,3),   imhist(J);    hold on;   bar((Jmax-Jmin)*tOtsu,w*k,'r');  bar(tnew,w*k,'r');
+            subplot(2,3,5), imshow(mask); xlabel('Maska')
+            set(gcf,'Position',scrsz);
+    % Warunek ko艅ca
+            if (tnew==told)     break;  end
+            told=tnew;
+            pause(1);
+        end
+        disp(['Prog wyznaczony metoda iteracyjna: ',int2str(tnew)]);
+end
+
+if(mode == 2) %ROZROST REGIONU
+    figure;
+    imshow(RGB);
+    title('wyb贸r punktu startowego');
+    [seed_x, seed_y] = ginput(1);
+    s = [round(seed_y), round(seed_x)]; %wsp贸艂rz臋dne s膮 odwrotnie ni偶 indeksowanie macierzy
+
+    kryterium=2; %kryterium = r贸偶nica intensywno艣ci w stosunku do 艣redniej intensywno艣ci obszaru
+    max_dJ=20;               % maksymalna r贸偶nica intensywno艣ci 
+    sasiedztwo=8;           % typ s膮siedztwa
+
+    Jsr2disp=[];                % wektor 艣rednich intensywno艣ci
+    l_pix=0;                    % licznik pikseli obiektu
+    Jw=false(w,k);              % binarny obraz wynikowy
+    maska=false(w,k);           % pomocnicza macierz informuj膮ca czy ju偶 sprawdzono dany piksel
+    kolejka=s;                  % wstawienie do kolejki punktu startowego
+    Jsr=Jd(s(1),s(2));          % pierwotna (lub jedyna) 艣rednia intensywno艣膰 obiektu
+% Wy艣wietlenie obrazu oryginalnego ze wskazanym punktem
+    figure(1), subplot('Position', [0.04 0.02 0.44 0.96]), imshow(Fun_dispseed(J,s,Jmax));  xlabel('Obraz oryginalny z punktem startowym'); set(gcf,'Position',scrsz);
+% Procedura rozrostu obszaru
+    while (~isempty(kolejka))                   % p臋tla g艂贸wna (max. 1s)
+        c=kolejka(1,:);                         % punkt c ze szczytu kolejki do analizy
+        kolejka=kolejka(2:size(kolejka,1),:);   % usuni臋cie c z kolejki
+        if (~maska(c(1),c(2)))                  % czy punkt nie by艂 jeszcze analizowany?
+            maska(c(1),c(2))=true;              % odznaczenie punktu c w masce, ...
+            if (abs(Jd(c(1),c(2))-Jsr)<=max_dJ) % czy kryterium w艂膮czenia jest spe艂nione?
+                Jw(c(1),c(2))=true;             % w艂膮czenie punktu c do obiektu
+                sasiedzi=Fun_neighbors(c,w,k,sasiedztwo);       % wyznaczenie indeks贸w s膮siad贸w punktu c
+                kolejka=[   kolejka;
+                            sasiedzi];          % wstawienie s膮siad贸w do kolejki
+                if (kryterium==2)
+                    Jsr=(l_pix*Jsr+Jd(c(1),c(2)))/(l_pix+1);    % aktualizacja 艣redniej intensywno艣ci
+                    Jsr2disp=[Jsr2disp; Jsr];   % dopisanie do wektora 艣rednich intensywno艣ci
+                end
+                l_pix=l_pix+1;                  % inkrementacja licznika pikseli
+            end
+        end
     end
-    disp(['Prog wyznaczony metoda iteracyjna: ',int2str(tnew)]);
-% Wsp蟪czynnik Dice
-    simmilarityIT = lDice(Iter, maska);
-    simmilarityOtsu = lDice(Otsu, maska);
-    disp("Wspolczynnik dice dla iteracyjnej " + simmilarityIT);
-    disp("Wspolczynnik dice dla Otsu " + simmilarityOtsu);
+% Wy艣wietlanie
+    if (kryterium==2)   figure(2);     plot(Jsr2disp);     xlabel('Zmiany sredniej intensywnosci obiektu');    set(gcf,'Position',scrsz);  end
+    figure(1), subplot(1,2,1), imshow(Fun_dispedges(J,find(bwperim(imdilate(Jw,strel('disk',1)))),Jmax),[]);   xlabel('Obraz po segmentacji');    set(gcf,'Position',scrsz);
+    subplot (1, 2, 2), imshow(mask); xlabel('maska')
+    if (isempty(kolejka))   info=['Liczba pikseli obiektu: ',int2str(l_pix)];
+    else                    info='Przekroczony czas. Segmentacja zakonczona niepowodzeniem';
+    end        
+    disp(info);
+end
