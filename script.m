@@ -2,7 +2,7 @@ clc;    clear;  close all;      scrsz=get(0,'ScreenSize');  scrsz=round([1 1 1 0
 %%
 numerObrazu = 1;
 RGB = imread("images\"+numerObrazu+".jpg");
-maska = imread("masks\m"+numerObrazu+".png");
+mask = imread("masks\m"+numerObrazu+".png");
 GRAY = rgb2gray(RGB);                             
 J = GRAY; % obraz w zmiennej J bior¹ wszystkie funkcje ni¿ej
 
@@ -67,11 +67,11 @@ if(mode == 2) %ROZROST REGIONU
     figure;
     imshow(RGB);
     title('wybór punktu startowego');
-    [seed_x, seed_y] = ginput(1);%funkcjê ginput zaproponowa³ chatgpt
+    [seed_x, seed_y] = ginput(1);
     s = [round(seed_y), round(seed_x)]; %wspó³rzêdne s¹ odwrotnie ni¿ indeksowanie macierzy
 
     kryterium=2; %kryterium = ró¿nica intensywnoœci w stosunku do œredniej intensywnoœci obszaru
-    max_dJ=40;               % maksymalna ró¿nica intensywnoœci 
+    max_dJ=42;               % maksymalna ró¿nica intensywnoœci 
     sasiedztwo=8;           % typ s¹siedztwa
 
     Jsr2disp=[];                % wektor œrednich intensywnoœci
@@ -103,7 +103,8 @@ if(mode == 2) %ROZROST REGIONU
     end
 % Wyœwietlanie
     if (kryterium==2)   figure(2);     plot(Jsr2disp);     xlabel('Zmiany sredniej intensywnosci obiektu');    set(gcf,'Position',scrsz);  end
-    figure(1), subplot('Position', [0.52 0.02 0.44 0.96]), imshow(Fun_dispedges(J,find(bwperim(imdilate(Jw,strel('disk',1)))),Jmax),[]);   xlabel('Obraz po segmentacji');    set(gcf,'Position',scrsz);
+    figure(1), subplot(1,2,1), imshow(Fun_dispedges(J,find(bwperim(imdilate(Jw,strel('disk',1)))),Jmax),[]);   xlabel('Obraz po segmentacji');    set(gcf,'Position',scrsz);
+    subplot (1, 2, 2), imshow(mask); xlabel('maska')
     if (isempty(kolejka))   info=['Liczba pikseli obiektu: ',int2str(l_pix)];
     else                    info='Przekroczony czas. Segmentacja zakonczona niepowodzeniem';
     end        
