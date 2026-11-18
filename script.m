@@ -50,8 +50,7 @@ Jmin=min(min(J));    Jmax=max(max(J));      % skrajne wartoœci intensywnoœci w J
     end
     disp(['Prog wyznaczony metoda iteracyjna: ',int2str(tnew)]);
 % Wspó³czynnik Dice
-    maska = imbinarize(maska);
-    simmilarityIT = dice(Iter, maska);
-    simmilarityOtsu = dice(Otsu, maska);
+    simmilarityIT = lDice(Iter, maska);
+    simmilarityOtsu = lDice(Otsu, maska);
     disp("Wspolczynnik dice dla iteracyjnej " + simmilarityIT);
     disp("Wspolczynnik dice dla Otsu " + simmilarityOtsu);
