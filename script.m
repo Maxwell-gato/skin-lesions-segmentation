@@ -1,56 +1,37 @@
-
-%% Inicjalizacja
 clc;    clear;  close all;      scrsz=get(0,'ScreenSize');  scrsz=round([1 1 1 0.88].*scrsz+[0 0.05*scrsz(4) 0 0]);
+%%
+numerObrazu = 2;
+RGB = imread("images\"+numerObrazu+".jpg");
+mask = imread("masks\m"+numerObrazu+".png");
+J = rgb2gray(RGB);
 
-%% Wczytanie danych obrazowych i pomocniczych
-numerObrazu = 1;
-J = imread("images\"+numerObrazu+".jpg");
-maska = imread("masks\m"+numerObrazu+".png");
-J = rgb2gray(J);
-[w,k]=size(J);                              % w x k - rozmiary obrazu J
-Jmin=min(min(J));    Jmax=max(max(J));      % skrajne wartoœci intensywnoœci w J
+%% kana³y rgb i hsv
+R = RGB(:, :, 1);
+G = RGB(:, :, 2);
+B = RGB(:, :, 3);
+subplot(2, 2, 1), imshow(RGB), title("obraz rgb")
+subplot(2, 2, 2), imshow(R), title("kana³ R")
+subplot(2, 2, 3), imshow(G), title("kana³ G")
+subplot(2, 2, 4), imshow(B), title("kana³ B")
+%{
+figure();
+[H, S, V] = rgb2hsv(RGB);
+subplot(2,2,1), imshow(RGB), title('Obraz rgb')
+subplot(2,2,2), imshow(H), title('Odcieñ (H)')
+subplot(2,2,3), imshow(S), title('Nasycenie (S)')
+subplot(2,2,4), imshow(V), title('Jasnoœæ (V)')
+%}
+pause();
+%%
+otsuMask = Fun_thresholding(J, mask, scrsz); % PROGOWANIE OTSU TODO - usunicie malych elementów
+similarity = dice(logical(otsuMask), logical(mask));
+disp("wartoœæ Dice progowania otsu: "+ similarity)
+pause();
+%%
+J = im2gray(imfuse(G, B));
 
-%%  progowanie globalne otsu i iteracyjne
-% Próg z metody Otsu dla porównania
-    tOtsu=graythresh(J);
-    disp(['Prog wyznaczony metoda Otsu:       ',int2str((Jmax-Jmin)*tOtsu)]);
-% Pierwotna wartoœæ progowa
-    told=round(0.5*Jmin+0.5*Jmax);
-    Jw=uint8(zeros(w,k));
-% Wyœwietlanie t w zerowej iteracji
-    subplot(2,3,1), imshow(J);  xlabel('Obraz oryginalny');
-    subplot(2,3,4), imshow(Jw,[]);  xlabel('Metoda iteracyjna');
-    subplot(2,3,2), imshow(im2bw(J,tOtsu));  xlabel('Metoda Otsu');
-    subplot(2,3,3),   imhist(J);    hold on;   bar((Jmax-Jmin)*tOtsu,w*k,'r');  bar(told,w*k,'r');
-    subplot(2,3,5), imshow(maska); xlabel('Maska')
-    set(gcf,'Position',scrsz);
-    pause(1);
-    Otsu = zeros(w,k);
-    Iter = zeros(w,k);
-% Pêtla g³ówna
-    for i=1:1000
-        Jw(J>told)=1;
-        tb =sum(sum(   Jw .*J))/nnz(  Jw);
-        tcz=sum(sum((1-Jw).*J))/nnz(1-Jw);
-        tnew=round(0.5*tcz+0.5*tb);
-        info=['Iteracja ',int2str(i),'    tstare = ',int2str(told),'    tnowe = ',int2str(tnew)];  disp(info);
-% Wyœwietlanie
-        subplot(2,3,1), imshow(J);  xlabel('Obraz oryginalny');
-        subplot(2,3,4), imshow(Jw,[]);  xlabel('Metoda iteracyjna');
-        subplot(2,3,2), imshow(im2bw(J,tOtsu));  xlabel('Metoda Otsu');
-        subplot(2,3,3),   imhist(J);    hold on;   bar((Jmax-Jmin)*tOtsu,w*k,'r');  bar(tnew,w*k,'r');
-        subplot(2,3,5), imshow(maska); xlabel('Maska')
-        set(gcf,'Position',scrsz);
-        Iter = (J > tnew);
-        Otsu = imbinarize(J,tOtsu);
-% Warunek koñca
-        if (tnew==told)     break;  end
-        told=tnew;
-        pause(1);
-    end
-    disp(['Prog wyznaczony metoda iteracyjna: ',int2str(tnew)]);
-% Wspó³czynnik Dice
-    simmilarityIT = lDice(Iter, maska);
-    simmilarityOtsu = lDice(Otsu, maska);
-    disp("Wspolczynnik dice dla iteracyjnej " + simmilarityIT);
-    disp("Wspolczynnik dice dla Otsu " + simmilarityOtsu);
+max_dJ = 7; %TODO - suwak w gui
+regionMask = Fun_region_growth(J, mask, max_dJ, RGB, scrsz); % ROZROST REGIONU
+similarity = dice(logical(regionMask), logical(mask));
+disp("wartoœæ Dice rozrostu regionu: "+ similarity)
+%%
