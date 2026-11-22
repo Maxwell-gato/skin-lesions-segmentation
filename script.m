@@ -5,27 +5,27 @@ RGB = imread("images\"+numerObrazu+".jpg");
 mask = imread("masks\m"+numerObrazu+".png");
 J = rgb2gray(RGB);
 
-%% kana³y rgb i hsv
+%% kanaï¿½y rgb i hsv
 R = RGB(:, :, 1);
 G = RGB(:, :, 2);
 B = RGB(:, :, 3);
 subplot(2, 2, 1), imshow(RGB), title("obraz rgb")
-subplot(2, 2, 2), imshow(R), title("kana³ R")
-subplot(2, 2, 3), imshow(G), title("kana³ G")
-subplot(2, 2, 4), imshow(B), title("kana³ B")
+subplot(2, 2, 2), imshow(R), title("kanaï¿½ R")
+subplot(2, 2, 3), imshow(G), title("kanaï¿½ G")
+subplot(2, 2, 4), imshow(B), title("kanaï¿½ B")
 %{
 figure();
 [H, S, V] = rgb2hsv(RGB);
 subplot(2,2,1), imshow(RGB), title('Obraz rgb')
-subplot(2,2,2), imshow(H), title('Odcieñ (H)')
+subplot(2,2,2), imshow(H), title('Odcieï¿½ (H)')
 subplot(2,2,3), imshow(S), title('Nasycenie (S)')
-subplot(2,2,4), imshow(V), title('Jasnoœæ (V)')
+subplot(2,2,4), imshow(V), title('Jasnoï¿½ï¿½ (V)')
 %}
 pause();
 %%
-otsuMask = Fun_thresholding(J, mask, scrsz); % PROGOWANIE OTSU TODO - usunicie malych elementów
+otsuMask = Fun_thresholding(J, mask, scrsz); % PROGOWANIE OTSU TODO - usunicie malych elementï¿½w
 similarity = dice(logical(otsuMask), logical(mask));
-disp("wartoœæ Dice progowania otsu: "+ similarity)
+disp("wartoï¿½ï¿½ Dice progowania otsu: "+ similarity)
 pause();
 %%
 J = im2gray(imfuse(G, B));
@@ -33,5 +33,5 @@ J = im2gray(imfuse(G, B));
 max_dJ = 7; %TODO - suwak w gui
 regionMask = Fun_region_growth(J, mask, max_dJ, RGB, scrsz); % ROZROST REGIONU
 similarity = dice(logical(regionMask), logical(mask));
-disp("wartoœæ Dice rozrostu regionu: "+ similarity)
+disp("wartoï¿½ï¿½ Dice rozrostu regionu: "+ similarity)
 %%
